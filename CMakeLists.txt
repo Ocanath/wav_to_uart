@@ -10,7 +10,7 @@ set(CMAKE_C_FLAGS_DEBUG "-g -O0")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 # Create the wav_parser executable
-add_executable(wav_parser wav_parser.c)
+add_executable(wav_parser main.c)
 
 # Make sure dr_wav.h is available
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/dr_wav.h")
