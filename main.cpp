@@ -27,9 +27,9 @@ int main(int argc, char** argv)
     
     // Print file information
     print_wav_info(&wav);
-    if(wav.translatedFormatTag != DR_WAVE_FORMAT_PCM || wav.bitsPerSample != 16)
+    if(wav.translatedFormatTag != DR_WAVE_FORMAT_PCM || wav.bitsPerSample != 16 || wav.channels != 1)
 	{
-		printf("Error: re-encode to 16bit, mono (single channel) PCB encoding\n");
+		printf("Error: re-encode to 16bit, mono (single channel) PCM encoding\n");
 		return 1;
 	}
 	if(wav.sampleRate != ser.get_baud_rate()/BITS_PER_FRAME)
