@@ -1,6 +1,7 @@
 #define DR_WAV_IMPLEMENTATION
 #include "wav_parsing.h"
 #include "serial.h"
+#include "cobs.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -39,6 +40,15 @@ int main(int argc, char** argv)
 	}
     // Print sample data
     
+    //ser.write((uint8_t*)"Hello Bitch\n", 12);
+    cobs_buf_t msg = {};
+    unsigned char msg_buf[] = "Hello Bitch\n00";
+    msg.buf = msg_buf;
+    msg.length = sizeof(msg_buf)-3;//truncate off the two extra characters
+    msg.size = sizeof(msg_buf);
+    cobs_encode_single_buffer(&msg);
+    ser.write(msg.buf, msg.length);
+
     
     drwav_uninit(&wav);
     
