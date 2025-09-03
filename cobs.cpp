@@ -113,14 +113,7 @@ int cobs_decode_double_buffer(cobs_buf_t* encoded_msg, cobs_buf_t* decoded_msg)
 
 /*
 This function is designed to handle an incoming serial stream of bytes.
-
-This variant does not use a double buffer, which means that we need explicit state management
-in order to determine when to parse the buffer.
-
-That state management is handled with the streaming_state variable.
-
-If streaming is complete, that means that the buffer needs to be parsed. The parser should always set the state flag to COBS_STREAMING_PARSED
-
+It relies on a double buffer - decoded_msg always contains a decoded msg, encoded_msg is a working buffer and shouldn't be referenced
  */
 int cobs_stream(unsigned char new_byte, cobs_buf_t *encoded_msg, cobs_buf_t *decoded_msg)
 {

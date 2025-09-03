@@ -16,4 +16,4 @@ wav-to-uart audioReadyToGo.wav
 
 To scale the volume using ffmpeg to the achievable system range:
 
-ffmpeg -i input.wav -af "volume=690/32767" -c:a pcm_s16le output.wav
+`ffmpeg -i input.wav -af "volume=690/32767" -c:a pcm_s16le output.wav`
