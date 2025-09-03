@@ -1,16 +1,16 @@
 cmake_minimum_required(VERSION 3.10)
-project(wav_to_rs485 C)
+project(wav_to_rs485 CXX)
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Compiler flags
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-set(CMAKE_C_FLAGS_DEBUG "-g -O0")
-set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 # Create the wav_parser executable
-add_executable(wav_parser main.c)
+add_executable(wav_parser main.cpp serial.cpp wav_parsing.cpp)
 
 # Make sure dr_wav.h is available
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/dr_wav.h")
