@@ -39,15 +39,17 @@ int main(int argc, char** argv)
 		return 1;
 	}
     // Print sample data
-    
-    //ser.write((uint8_t*)"Hello Bitch\n", 12);
     cobs_buf_t msg = {};
-    unsigned char msg_buf[] = "Hello Bitch\n00";
-    msg.buf = msg_buf;
-    msg.length = sizeof(msg_buf)-3;//truncate off the two extra characters
-    msg.size = sizeof(msg_buf);
-    cobs_encode_single_buffer(&msg);
-    ser.write(msg.buf, msg.length);
+    unsigned char msgbuf[8] = {};   //actually 4, whatever
+    msg.buf = msgbuf;
+    msg.size = sizeof(msgbuf);
+    for (int i = 0; i < wav.totalPCMFrameCount; i++)
+    {
+        msg.length = drwav_read_pcm_frames(&wav, 1, msg.buf)*sizeof(int16_t);
+        cobs_encode_single_buffer(&msg);
+        ser.write(msg.buf, msg.length);
+    }
+    
 
     
     drwav_uninit(&wav);
