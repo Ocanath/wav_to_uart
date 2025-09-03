@@ -12,3 +12,8 @@ ffmpeg -i audio.wav -ar 23040 -ac 1 audioReadyToGo.wav
 wav-to-uart audioReadyToGo.wav
 ```
 `-ar` alters the sampling rate, `-ac` changes channel count
+
+
+To scale the volume using ffmpeg to the achievable system range:
+
+ffmpeg -i input.wav -af "volume=690/32767" -c:a pcm_s16le output.wav
