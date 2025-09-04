@@ -43,11 +43,22 @@ int main(int argc, char** argv)
     unsigned char msgbuf[8] = {};   //actually 4, whatever
     msg.buf = msgbuf;
     msg.size = sizeof(msgbuf);
+
+    unsigned char tx_multiple[4 * 8] = {};
+    int tx_buffer_idx = 0;
     for (int i = 0; i < wav.totalPCMFrameCount; i++)
     {
         msg.length = drwav_read_pcm_frames(&wav, 1, msg.buf)*sizeof(int16_t);
         cobs_encode_single_buffer(&msg);
-        ser.write(msg.buf, msg.length);
+        for (int midx = 0; midx < msg.length; midx++)
+        {
+            tx_multiple[tx_buffer_idx++] = msg.buf[midx];
+            if (tx_buffer_idx >= sizeof(tx_multiple))
+            {
+                ser.write(tx_multiple, tx_buffer_idx);
+                tx_buffer_idx = 0;
+            }
+        }
     }
     
 
