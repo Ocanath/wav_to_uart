@@ -33,11 +33,11 @@ int main(int argc, char** argv)
 		printf("Error: re-encode to 16bit, mono (single channel) PCM encoding\n");
 		return 1;
 	}
-	if(wav.sampleRate != ser.get_baud_rate()/BITS_PER_FRAME)
-	{
-		printf("Error: use ffmpeg to re-encode with %u", ser.get_baud_rate()/BITS_PER_FRAME);
-		return 1;
-	}
+	//if(wav.sampleRate != ser.get_baud_rate()/BITS_PER_FRAME)
+	//{
+	//	printf("Error: use ffmpeg to re-encode with %u", ser.get_baud_rate()/BITS_PER_FRAME);
+	//	return 1;
+	//}
     // Print sample data
     cobs_buf_t msg = {};
     unsigned char msgbuf[8] = {};   //actually 4, whatever
