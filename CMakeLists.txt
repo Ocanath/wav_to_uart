@@ -28,7 +28,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 # Create the wav_parser executable
-add_executable(wav_parser main.cpp serial.cpp wav_parsing.cpp cobs.cpp)
+add_executable(wav_parser main.cpp serial.cpp wav_parsing.cpp cobs.cpp ble.cpp)
 
 target_link_libraries(wav_parser simpleble::simpleble-c)
 
