@@ -30,6 +30,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 # Create the wav_parser executable
 add_executable(wav_parser main.cpp serial.cpp wav_parsing.cpp cobs.cpp)
 
+target_link_libraries(wav_parser simpleble::simpleble-c)
+
 # Set output directory
 set_target_properties(wav_parser PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
