@@ -3,6 +3,7 @@ import numpy as np
 from scipy.io.wavfile import read
 import scipy as sp
 from cobs import encode
+from serial_helper import autoconnect_serial
 
 import matplotlib.pyplot as plt
 
@@ -26,10 +27,15 @@ def main():
     if(len(data.shape) != 1):
         raise RuntimeError("Audio must be mono-encoded")
 
-    fig,ax = plt.subplots()
-    t = np.linspace(0,len(data), len(data))
-    ax.plot(t, data)
-    plt.show()
+
+
+    slist = autoconnect_serial()
+    ser = slist[0]
+
+    # fig,ax = plt.subplots()
+    # t = np.linspace(0,len(data), len(data))
+    # ax.plot(t, data)
+    # plt.show()
 
 
 if __name__ == '__main__':
