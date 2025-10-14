@@ -38,13 +38,13 @@ def main():
         pkt_bytes = struct.pack('<h', dval)
         pkt = bytearray(encode(pkt_bytes))
         buffered_pkt.extend(pkt)
-        if(len(buffered_pkt) > 48):
-            try:
-                ser.write(buffered_pkt)
-            except:
-                print(f'No serial port. latest dval = {dval}, encoded = {pkt.hex()}, pkt = {buffered_pkt.hex()}')
-            buffered_pkt = bytearray([])
-
+        # if(len(buffered_pkt) > 48):
+        #     try:
+        #         ser.write(buffered_pkt)
+        #     except:
+        #         print(f'No serial port. latest dval = {dval}, encoded = {pkt.hex()}, pkt = {buffered_pkt.hex()}')
+        #     buffered_pkt = bytearray([])
+    ser.write(buffered_pkt)
 
 
 if __name__ == '__main__':
