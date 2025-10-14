@@ -23,6 +23,9 @@ def main():
     print(f"Data shape: {data.shape}")
     print(f"Data dtype: {data.dtype}")
 
+    if(len(data.shape) != 1):
+        raise RuntimeError("Audio must be mono-encoded")
+
     fig,ax = plt.subplots()
     t = np.linspace(0,len(data), len(data))
     ax.plot(t, data)
