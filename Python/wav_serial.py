@@ -4,6 +4,8 @@ from scipy.io.wavfile import read
 import scipy as sp
 from cobs import encode
 
+import matplotlib.pyplot as plt
+
 
 
 
@@ -21,7 +23,10 @@ def main():
     print(f"Data shape: {data.shape}")
     print(f"Data dtype: {data.dtype}")
 
-    # Your processing code here
+    fig,ax = plt.subplots()
+    t = np.linspace(0,len(data), len(data))
+    ax.plot(t, data)
+    plt.show()
 
 
 if __name__ == '__main__':
