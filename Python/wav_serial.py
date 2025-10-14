@@ -4,9 +4,7 @@ from scipy.io.wavfile import read
 import scipy as sp
 from cobs import encode
 from serial_helper import autoconnect_serial
-
-import matplotlib.pyplot as plt
-
+import struct
 
 
 
@@ -28,17 +26,29 @@ def main():
         raise RuntimeError("Audio must be mono-encoded")
 
 
+    try:
+        slist = autoconnect_serial(921600)
+        if(len(slist) != 0):
+            ser = slist[0]
+    except:
+        raise RuntimeWarning("Failed to connect to a serial port")
 
-    slist = autoconnect_serial()
-    ser = slist[0]
+    buffered_pkt = bytearray([])
+    for dval in data:
+        pkt_bytes = struct.pack('<h', dval)
+        pkt = bytearray(encode(pkt_bytes))
+        buffered_pkt.extend(pkt)
+        if(len(buffered_pkt) > 48):
+            try:
+                ser.write(buffered_pkt)
+            except:
+                print(f'No serial port. latest dval = {dval}, encoded = {pkt.hex()}, pkt = {buffered_pkt.hex()}')
+            buffered_pkt = bytearray([])
 
-    # fig,ax = plt.subplots()
-    # t = np.linspace(0,len(data), len(data))
-    # ax.plot(t, data)
-    # plt.show()
 
 
 if __name__ == '__main__':
+
     main()
 
 

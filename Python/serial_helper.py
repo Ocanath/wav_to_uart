@@ -2,7 +2,7 @@ import serial
 from serial.tools import list_ports
 
 
-def autoconnect_serial():
+def autoconnect_serial(baudrate: int):
 	""" 
 		Find a serial com port.
 	"""
@@ -21,7 +21,7 @@ def autoconnect_serial():
 	for p in port:
 		try:
 			ser = []
-			ser = (serial.Serial(p[0],'2000000', timeout = 0))
+			ser = (serial.Serial(p[0], str(baudrate), timeout = 0))
 			slist.append(ser)
 			print ("connected!", p)
 			break
