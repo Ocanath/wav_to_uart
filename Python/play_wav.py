@@ -12,6 +12,5 @@ if __name__ == '__main__':
             ser = slist[0]
     except:
         raise RuntimeWarning("Failed to connect to a serial port")
-    
     play_wav(ser, args.filename)
     

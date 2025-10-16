@@ -21,8 +21,9 @@ def play_wav(ser, filename):
         buffered_pkt.extend(pkt)
     try:
         ser.write(buffered_pkt)
-    except:
-        print(buffered_pkt.hex())
+    except Exception as e:
+        # print(buffered_pkt.hex())
+        raise RuntimeError(f"Serial Write failed:{type(e).__name__}:{e}")
     return True
 
 
