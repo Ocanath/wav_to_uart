@@ -7,6 +7,7 @@
 #include "ble.h"
 #include "cobs.h"
 #include "dartt.h"
+#include "dartt_sync.h"
 #include "audio.h"
 
 #define BITS_PER_FRAME	40	//2 bytes header, 2 bytes payload, 10 bits per byte = 40 bits
@@ -68,11 +69,19 @@ int main(int argc, char** argv)
 		.size = sizeof(renderer.recv_buffer), 
 		.len = 0 
 	};
-
+	dartt_sync_t ds = {};
     for (drwav_uint64 i = 0; i < wav.totalPCMFrameCount; i++)
     {
-        audio_buf.len = drwav_read_pcm_frames(&wav, audio_buf.size, audio_buf.buf);
+		if(audio_buf.len + 2 <= audio_buf.size)
+        {
+			audio_buf.len += drwav_read_pcm_frames(&wav, 1, audio_buf.buf)*sizeof(int16_t);
+		}
 		printf("len = %ld\n", audio_buf.len);
+		if(audio_buf.len >= audio_buf.size)
+		{
+			audio_buf.len = 0;
+		}
+		
     }
     
 
