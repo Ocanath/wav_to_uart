@@ -66,12 +66,12 @@ int main(int argc, char** argv)
     msg.size = sizeof(msgbuf);
 
     unsigned char tx_multiple[4 * 8] = {};
-    int tx_buffer_idx = 0;
-    for (int i = 0; i < wav.totalPCMFrameCount; i++)
+    size_t tx_buffer_idx = 0;
+    for (drwav_uint64 i = 0; i < wav.totalPCMFrameCount; i++)
     {
         msg.length = drwav_read_pcm_frames(&wav, 1, msg.buf)*sizeof(int16_t);
         cobs_encode_single_buffer(&msg);
-        for (int midx = 0; midx < msg.length; midx++)
+        for (size_t midx = 0; midx < msg.length; midx++)
         {
             tx_multiple[tx_buffer_idx++] = msg.buf[midx];
             if (tx_buffer_idx >= sizeof(tx_multiple))
