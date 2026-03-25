@@ -1,38 +1,23 @@
-cmake_minimum_required(VERSION 3.21)
-project(wav_to_rs485 CXX)
+cmake_minimum_required(VERSION 3.22)
+project(ability_hand_test C CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#fetchcontent for simpleble
-include(FetchContent)
+# Submodules
+add_subdirectory(external/byte-stuffing)
+add_subdirectory(external/serial-cross-platform)
+add_subdirectory(external/dartt-protocol)
 
-FetchContent_Declare(
-    simpleble
-    GIT_REPOSITORY https://github.com/OpenBluetoothToolbox/SimpleBLE.git
-    GIT_TAG main
-)
+include(external/simpleble/cmake/prelude.cmake)
+include(external/simpleble/cmake/epilogue.cmake)
+add_subdirectory(external/simpleble/simpleble)
 
-FetchContent_Declare(
-    byte_stuffing
-    GIT_REPOSITORY https://github.com/Ocanath/byte-stuffing.git
-    GIT_TAG        master
-)
-
-# Fetch serial library
-FetchContent_Declare(
-    serial
-    GIT_REPOSITORY https://github.com/Ocanath/serial-cross-platform.git
-    GIT_TAG master  # or specify a specific tag/commit
-)
-
-FetchContent_MakeAvailable(simpleble serial byte_stuffing)
-
-include(${simpleble_SOURCE_DIR}/cmake/prelude.cmake)
-include(${simpleble_SOURCE_DIR}/cmake/epilogue.cmake)
-
-#Build the simpleble library using add_subdirectory
-add_subdirectory(${simpleble_SOURCE_DIR}/simpleble ${CMAKE_BINARY_DIR}/simpleble)
+# v0.6.1 compiles with /WX; suppress MSVC STL array-iterator deprecation warnings
+# that became errors in VS 2022 17.x+. Must be a compiler flag, not a source #define.
+if(MSVC)
+    target_compile_definitions(simpleble PRIVATE _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING _SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS)
+endif()
 
 
 # Compiler flags
@@ -42,24 +27,23 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 # Create the wav_parser executable
 add_executable(wav_parser 
-    main.cpp 
-    wav_parsing.cpp  
-    ble.cpp
+    src/main.cpp 
+    src/wav_parsing.cpp  
+    src/ble.cpp
 )
 
-target_link_libraries(wav_parser 
+target_include_directories(wav_parser PRIVATE src)
+
+target_link_libraries(wav_parser
     PRIVATE
-    simpleble::simpleble-c
+    simpleble::simpleble
     serial
+	dartt_protocol
+    dartt_checksum
     cobs
     PPP
 )
 
-target_include_directories(wav_parser
-    PRIVATE
-    ${serial_SOURCE_DIR}
-    ${cobs_SOURCE_DIR}
-)
 
 # Set output directory
 set_target_properties(wav_parser PROPERTIES
