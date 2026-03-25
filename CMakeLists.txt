@@ -30,6 +30,7 @@ add_executable(wav_parser
     src/main.cpp 
     src/wav_parsing.cpp  
     src/ble.cpp
+	src/audio.c
 )
 
 target_include_directories(wav_parser PRIVATE src)

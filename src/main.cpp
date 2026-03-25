@@ -7,6 +7,7 @@
 #include "ble.h"
 #include "cobs.h"
 #include "dartt.h"
+#include "audio.h"
 
 #define BITS_PER_FRAME	40	//2 bytes header, 2 bytes payload, 10 bits per byte = 40 bits
 
@@ -60,26 +61,18 @@ int main(int argc, char** argv)
 	//	return 1;
 	//}
     // Print sample data
-    cobs_buf_t msg = {};
-    unsigned char msgbuf[8] = {};   //actually 4, whatever
-    msg.buf = msgbuf;
-    msg.size = sizeof(msgbuf);
 
-    unsigned char tx_multiple[4 * 8] = {};
-    size_t tx_buffer_idx = 0;
+	audio_renderer_t renderer = {};	//control struct for slave renderer
+	dartt_buffer_t audio_buf = {
+		.buf = (unsigned char *)&renderer.recv_buffer,
+		.size = sizeof(renderer.recv_buffer), 
+		.len = 0 
+	};
+
     for (drwav_uint64 i = 0; i < wav.totalPCMFrameCount; i++)
     {
-        msg.length = drwav_read_pcm_frames(&wav, 1, msg.buf)*sizeof(int16_t);
-        cobs_encode_single_buffer(&msg);
-        for (size_t midx = 0; midx < msg.length; midx++)
-        {
-            tx_multiple[tx_buffer_idx++] = msg.buf[midx];
-            if (tx_buffer_idx >= sizeof(tx_multiple))
-            {
-                ser.write(tx_multiple, tx_buffer_idx);
-                tx_buffer_idx = 0;
-            }
-        }
+        audio_buf.len = drwav_read_pcm_frames(&wav, audio_buf.size, audio_buf.buf);
+		printf("len = %ld\n", audio_buf.len);
     }
     
 
