@@ -26,9 +26,10 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 # Create the wav_parser executable
-add_executable(wav_parser 
-    src/main.cpp 
-    src/wav_parsing.cpp  
+add_executable(wav_parser
+    src/main.cpp
+    src/args.cpp
+    src/wav_parsing.cpp
     src/ble.cpp
 	src/audio.c
 )
