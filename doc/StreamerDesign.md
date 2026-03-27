@@ -17,5 +17,9 @@ A requirement for this to function properly is that amount of time required to *
 
 The audio streaming service does the following:
 - Read the sampling rate of the input wav file
-- Determine whether it is possible to stream as a function of the sampling rate and buffer size.
+- Determine whether it is possible to stream as a function of the sampling rate and baudrate / total block write time
+- Writes the appropriate sample period to the peripheral
+- Streams the data. This works by first transmitting both chunks, then after the first full block write, polling the buffer_pos. If the buffer_pos has entered the second half after writing the first half, the first half is written with new data. If the second half has finished and wraps back around to the first half, the first half is written with new data. 
+
+Playback is stopped by setting the retransmission period to 0.
 
