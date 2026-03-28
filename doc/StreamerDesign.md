@@ -23,3 +23,13 @@ The audio streaming service does the following:
 
 Playback is stopped by setting the retransmission period to 0.
 
+
+The peripheral device does the following:
+
+- Playback works according to `audio_stream()` in `audio.c`. 
+- When `retransmission_us` is zero, it is idle (does not play anything).
+- When `retransmission_us` is nonzero, it immediately begins playback
+- A new sample is loaded out from the recv_buffer to the speaker once every `retransmission_us` microseconds.
+- The buffer is circular - once it reaches the end, it loops back around to the beginning
+
+
