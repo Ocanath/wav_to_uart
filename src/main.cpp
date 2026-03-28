@@ -31,9 +31,9 @@ int load_block(misc_write_message_t &wmsg, drwav& wav, drwav_uint64 & sample_idx
 		int numwritten = drwav_read_pcm_frames(&wav, 1, &wav_sample);
 		if(numwritten == 0)
 		{
-			return 0;
+			return 1;
 		}
-		
+
 		sample_idx++;
 		wmsg.payload.buf[wmsg.payload.len++] = (unsigned char)(wav_sample & 0x00FF);
 		wmsg.payload.buf[wmsg.payload.len++] = (unsigned char)((wav_sample & 0xFF00) >> 8);
@@ -226,7 +226,7 @@ int main(int argc, char** argv)
 	misc_write_message_t write_msg_upperhalf =
 	{
 			.address = dartt_get_complementary_address(args.dartt_address),
-			.index = (uint16_t)(index_of_field(&renderer.recv_buffer, &renderer, sizeof(renderer)) + args.dartt_index),
+			.index = (uint16_t)(index_of_field(&renderer.recv_buffer + sizeof(renderer.recv_buffer)/2, &renderer, sizeof(renderer)) + args.dartt_index),
 			.payload = {
 					.buf = (unsigned char * )renderer.recv_buffer + sizeof(renderer.recv_buffer)/2,
 					.size = sizeof(renderer.recv_buffer) / 2,
@@ -235,7 +235,7 @@ int main(int argc, char** argv)
 	};
 
 	misc_read_message_t rmsg_pos = {
-		.address = args.dartt_address,
+		.address = dartt_get_complementary_address(args.dartt_address),
 		.index = (uint16_t)(index_of_field(&renderer.buffer_pos, &renderer, sizeof(renderer)) + args.dartt_index),
 		.num_bytes = sizeof(renderer.buffer_pos)
 	};
@@ -276,7 +276,7 @@ int main(int argc, char** argv)
 		
 		read_playback_idx(rmsg_pos, dartt_serial_tx, cobs_serial_rx, renderer, ser);
 		uint8_t bpos_region;
-		if(renderer.buffer_pos < sizeof(renderer.recv_buffer)/sizeof(int16_t))
+		if(renderer.buffer_pos < (sizeof(renderer.recv_buffer)/sizeof(int16_t)) / 2)
 		{
 			bpos_region = BPOS_LOWER;
 		}
@@ -302,6 +302,8 @@ int main(int argc, char** argv)
 		
     }
     
+	renderer.retransmission_us = 0;
+	write_audio_data(write_msg_samplerate, dartt_serial_tx, ser);
 
     
     drwav_uninit(&wav);

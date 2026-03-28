@@ -19,7 +19,7 @@ The audio streaming service does the following:
 - Read the sampling rate of the input wav file
 - Determine whether it is possible to stream as a function of the sampling rate, baudrate, average write/read time, and buffer size. If the time to playback the audio is greater than the time to poll and write the unused half of the buffer, the file is renderable.
 - Writes the appropriate sample period to the peripheral
-- Streams the data. This works by first transmitting both chunks, then after the first full block write, polling the buffer_pos. If the buffer_pos has entered the second half after writing the first half, the first half is written with new data. If the second half has finished and wraps back around to the first half, the first half is written with new data. 
+- Streams the data. This works by first transmitting both chunks, then after the first full block write, polling the buffer_pos. If the buffer_pos has entered the second half after writing the first half, the first half is written with new data. If the second half has finished and wraps back around to the first half, the second half is written with new data. 
 
 Playback is stopped by setting the retransmission period to 0.
 
