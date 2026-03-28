@@ -210,13 +210,14 @@ int main(int argc, char** argv)
 		}
 	};
 
+	size_t audiobuf_nsamples = sizeof(renderer.recv_buffer)/sizeof(int16_t);
 	//update first half of render buf on the peripheral
 	misc_write_message_t write_msg_lowerhalf =
 	{
 			.address = dartt_get_complementary_address(args.dartt_address),
-			.index = (uint16_t) (index_of_field(&renderer.recv_buffer, &renderer, sizeof(renderer)) + args.dartt_index),
+			.index = (uint16_t) (index_of_field(&renderer.recv_buffer[0], &renderer, sizeof(renderer)) + args.dartt_index),
 			.payload = {
-					.buf = (unsigned char * )renderer.recv_buffer,
+					.buf = (unsigned char * )(&renderer.recv_buffer[0]),
 					.size = sizeof(renderer.recv_buffer) / 2,
 					.len = sizeof(renderer.recv_buffer) / 2
 			}
@@ -226,9 +227,9 @@ int main(int argc, char** argv)
 	misc_write_message_t write_msg_upperhalf =
 	{
 			.address = dartt_get_complementary_address(args.dartt_address),
-			.index = (uint16_t)(index_of_field(&renderer.recv_buffer + sizeof(renderer.recv_buffer)/2, &renderer, sizeof(renderer)) + args.dartt_index),
+			.index = (uint16_t)(index_of_field(&renderer.recv_buffer[audiobuf_nsamples/2], &renderer, sizeof(renderer)) + args.dartt_index),
 			.payload = {
-					.buf = (unsigned char * )renderer.recv_buffer + sizeof(renderer.recv_buffer)/2,
+					.buf = (unsigned char * )(&renderer.recv_buffer[audiobuf_nsamples/2]),
 					.size = sizeof(renderer.recv_buffer) / 2,
 					.len = sizeof(renderer.recv_buffer) / 2
 			}
