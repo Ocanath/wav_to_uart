@@ -227,7 +227,11 @@ int AudioWriter::play(const char * filename)
 		}
 		
 		// read_playback_idx(rmsg_pos, dartt_serial_tx, cobs_serial_rx, renderer, ser);
-		dartt_read_multi(&bufferposition, &ds);
+		rc = dartt_read_multi(&bufferposition, &ds);
+		if(rc != DARTT_PROTOCOL_SUCCESS)
+		{
+			break;
+		}
 		uint8_t bpos_region;
 		if(renderer_shadow.buffer_pos < (sizeof(renderer_shadow.recv_buffer)/sizeof(int16_t)) / 2)
 		{
@@ -258,7 +262,7 @@ int AudioWriter::play(const char * filename)
 	dartt_write_multi(&samplerate, &ds);
 
 	drwav_uninit(&wav);
-	return 0;
+	return rc;
 }
 
 
