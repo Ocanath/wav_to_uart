@@ -16,7 +16,7 @@ echo "- Applying highpass filter at 2000Hz"
 echo "- Applying lowpass filter at 10000Hz"
 echo "- Scaling volume by 10000/32767 (0.305)"
 
-ffmpeg -i "$INPUT_FILE" -ar 17631 -ac 1 -af "highpass=f=2000,lowpass=f=10000,volume=10000/32767" -y "$OUTPUT_FILE"
+ffmpeg -i "$INPUT_FILE" -ar 20000 -ac 1 -af "highpass=f=2000,volume=12000/32767" -y "$OUTPUT_FILE"
 
 if [ $? -eq 0 ]; then
     echo "Success! Output saved as: $OUTPUT_FILE"
