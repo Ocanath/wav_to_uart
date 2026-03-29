@@ -30,7 +30,6 @@ add_executable(wav_parser
     src/main.cpp
     src/args.cpp
     src/wav_parsing.cpp
-    src/ble.cpp
 	embedded/audio.c
 	src/AudioWriter.cpp
 )

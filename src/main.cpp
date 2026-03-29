@@ -5,7 +5,6 @@
 #include "cobs.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "ble.h"
 #include "cobs.h"
 #include "dartt.h"
 #include "dartt_sync.h"
