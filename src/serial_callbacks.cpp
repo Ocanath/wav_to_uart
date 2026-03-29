@@ -1,12 +1,6 @@
-#include "dartt_init.h"
+#include "serial_callbacks.h"
+#include "serial.h"
 #include <cstdio>
-
- #define NUM_BYTES_COBS_OVERHEAD	2	//we have to tell dartt our serial buffers are smaller than they are, so the COBS layer has room to operate. This allows for functional multiple message handling with write_multi and read_multi for large configs
-
-unsigned char tx_mem[SERIAL_BUFFER_SIZE] = {};
-unsigned char rx_dartt_mem[SERIAL_BUFFER_SIZE] = {};
-unsigned char rx_cobs_mem[SERIAL_BUFFER_SIZE] = {};
-
 
 int tx_blocking(unsigned char addr, dartt_buffer_t * b, void * user_context, uint32_t timeout)
 {
@@ -15,9 +9,13 @@ int tx_blocking(unsigned char addr, dartt_buffer_t * b, void * user_context, uin
 		return -2;
 	}
 	Serial * pser = (Serial*)(user_context);
+	if(pser->connected() == false)
+	{
+		return -2;
+	}
 	cobs_buf_t cb = {
-		.buf = tx_mem,
-		.size = sizeof(tx_mem),
+		.buf = b->buf,
+		.size = SERIAL_BUFFER_SIZE,	//important! this has to be the true size - b doesn't know what size it actually has. Use SERIAL_BUFFER_SIZE as source of truth for size since sizeof(var) is out of scope
 		.length = b->len,
 		.encoded_state = COBS_DECODED
 	};
@@ -26,6 +24,7 @@ int tx_blocking(unsigned char addr, dartt_buffer_t * b, void * user_context, uin
 	{
 		return rc;
 	}
+
 	rc = pser->write(cb.buf, (int)cb.length);
 	if(rc == (int)cb.length)
 	{
@@ -44,10 +43,15 @@ int rx_blocking(dartt_buffer_t * buf, void * user_context, uint32_t timeout)
 		return -2;
 	}
 	Serial * pser = (Serial*)(user_context);
+	if(pser->connected() == false)
+	{
+		return -2;
+	}
+
 	cobs_buf_t cb_enc =
 	{
-		.buf = rx_cobs_mem,
-		.size = sizeof(rx_cobs_mem),
+		.buf = buf->buf,
+		.size = SERIAL_BUFFER_SIZE,	//important! this has to be the true size - b doesn't know what size it actually has. Use SERIAL_BUFFER_SIZE as source of truth for size since sizeof(var) is out of scope
 		.length = 0
 	};
 
@@ -86,24 +90,3 @@ int rx_blocking(dartt_buffer_t * buf, void * user_context, uint32_t timeout)
 	}
     
 }
-
-void init_ds(dartt_sync_t & ds, Serial & ser)
-{
-	ds.address = 0;	//must be mapped
-	ds.ctl_base = {};	//must be assigned
-	ds.periph_base = {};	//must be assigned
-	ds.base_offset = 0;
-	ds.msg_type = TYPE_SERIAL_MESSAGE;
-	ds.tx_buf.buf = tx_mem;
-	ds.tx_buf.size = sizeof(tx_mem) - NUM_BYTES_COBS_OVERHEAD;		//DO NOT CHANGE. This is for a good reason. See above note
-	ds.tx_buf.len = 0;
-	ds.rx_buf.buf = rx_dartt_mem;
-	ds.rx_buf.size = sizeof(rx_dartt_mem) - NUM_BYTES_COBS_OVERHEAD;	//DO NOT CHANGE. This is for a good reason. See above note
-	ds.rx_buf.len = 0;
-	ds.blocking_tx_callback = &tx_blocking;
-	ds.blocking_rx_callback = &rx_blocking;
-	ds.user_context_tx = &ser;
-	ds.user_context_rx = &ser;
-	ds.timeout_ms = 10;
-}
-

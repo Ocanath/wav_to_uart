@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/wav_parser",
-            "args": ["IsAnyOneThere_processed.wav", "0", "71", "--baudrate", "921600"],
+            "args": ["build/bin/IsAnyOneThere_processed.wav", "0", "71", "--baudrate", "921600"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

@@ -9,38 +9,13 @@
 #include "cobs.h"
 #include "dartt.h"
 #include "dartt_sync.h"
-#include "dartt_init.h"
-#include "audio.h"
+#include "serial_callbacks.h"
+#include "AudioWriter.h"
 
 #define BITS_PER_FRAME	40	//2 bytes header, 2 bytes payload, 10 bits per byte = 40 bits
 
-enum {UNWRITTEN, WRITTEN_UNVISITED, PLAYBACK_IN_PROGRESS, PLAYBACK_DONE};
-enum {BPOS_LOWER, BPOS_UPPER};
-
-typedef struct target_buffer_label_t
-{
-	uint8_t lower_half;
-	uint8_t upper_half;
-}target_buffer_label_t;	
 
 
-int load_block(dartt_buffer_t &wmsg, drwav& wav, drwav_uint64 & sample_idx)
-{
-	for(wmsg.len = 0; wmsg.len < wmsg.size;)
-	{
-		int16_t wav_sample = 0;
-		int numwritten = drwav_read_pcm_frames(&wav, 1, &wav_sample);
-		if(numwritten == 0)
-		{
-			return 1;
-		}
-
-		sample_idx++;
-		wmsg.buf[wmsg.len++] = (unsigned char)(wav_sample & 0x00FF);
-		wmsg.buf[wmsg.len++] = (unsigned char)((wav_sample & 0xFF00) >> 8);
-	}
-	return 0;
-}
 
 /*
 
@@ -63,139 +38,12 @@ int main(int argc, char** argv)
 {
     args_t args = parse_args(argc, argv);
 
-    drwav wav;
-    if (!drwav_init_file(&wav, args.filename, NULL)) {
-        printf("Failed to open WAV file: %s\n", args.filename);
-        return 1;
-    }
-
 	Serial ser;
 	ser.autoconnect(args.baudrate);
 
-    printf("Successfully opened: %s\n\n", args.filename);
-    
-    // Print file information
-    print_wav_info(&wav);
-    if(wav.translatedFormatTag != DR_WAVE_FORMAT_PCM || wav.bitsPerSample != 16 || wav.channels != 1)
-	{
-		printf("Error: re-encode to 16bit, mono (single channel) PCM encoding\n");
-		return 1;
-	}
-	
-	//TODO: add feasibility check based on sample rate and baudrate. must be able to write a buffer faster than it gets written out!
-	//if(wav.sampleRate != ser.get_baud_rate()/BITS_PER_FRAME)
-	//{
-	//	printf("Error: use ffmpeg to re-encode with %u", ser.get_baud_rate()/BITS_PER_FRAME);
-	//	return 1;
-	//}
-    // Print sample data
+	AudioWriter audiowriter(args.dartt_address, args.dartt_index, ser);
+	audiowriter.play(args.filename);
 
-	dartt_sync_t ds = {};
-	init_ds(ds, ser);
-	ds.address = args.dartt_address;
-	ds.base_offset = args.dartt_index;
-
-	audio_renderer_t renderer_ctl = {};	//control struct for slave renderer
-	audio_renderer_t renderer_shadow = {};
-	ds.ctl_base.buf = (unsigned char *)(&renderer_ctl);
-	ds.ctl_base.size = sizeof(renderer_ctl);
-	ds.periph_base.buf = (unsigned char *)(&renderer_shadow);
-	ds.periph_base.size = sizeof(renderer_shadow);
-
-	//update sample rate on the peripheral
-	dartt_buffer_t samplerate = {
-		.buf = (unsigned char *)(&renderer_ctl.retransmission_us),
-		.size = sizeof(renderer_ctl.retransmission_us),
-		.len = sizeof(renderer_ctl.retransmission_us)
-	};
-
-	//for updating the buffer position. one-time write
-	dartt_buffer_t bufferposition = {
-		.buf = (unsigned char *)(&renderer_ctl.buffer_pos),
-		.size = sizeof(renderer_ctl.buffer_pos),
-		.len = sizeof(renderer_ctl.buffer_pos)
-	};
-
-	size_t audiobuf_nsamples = sizeof(renderer_ctl.recv_buffer)/sizeof(int16_t);
-	//update first half of render buf on the peripheral
-	dartt_buffer_t lowerhalf = {
-		.buf = (unsigned char *)(&renderer_ctl.recv_buffer[0]),
-		.size = sizeof(renderer_ctl.recv_buffer) / 2,
-		.len = sizeof(renderer_ctl.recv_buffer) / 2
-	};
-
-
-	//update second half of render buf on the peripheral
-	dartt_buffer_t upperhalf = {
-		.buf = (unsigned char *)(&renderer_ctl.recv_buffer[audiobuf_nsamples/2]),
-		.size = sizeof(renderer_ctl.recv_buffer) / 2,
-		.len = sizeof(renderer_ctl.recv_buffer) / 2
-	};
-
-
-	target_buffer_label_t target_tracker = {
-		.lower_half = UNWRITTEN,
-		.upper_half = UNWRITTEN
-	};
-	drwav_uint64 sample_idx = 0;
-
-	//initialize - stop playback
-	renderer_ctl.buffer_pos = 0;
-	renderer_ctl.retransmission_us = 0;
-	dartt_write_multi(&bufferposition, &ds);
-	dartt_write_multi(&samplerate, &ds);
-
-	while(sample_idx < wav.totalPCMFrameCount)
-    {
-		if(target_tracker.lower_half == UNWRITTEN && target_tracker.upper_half == UNWRITTEN)
-		{
-			load_block(lowerhalf, wav, sample_idx);
-			dartt_write_multi(&lowerhalf, &ds);
-			target_tracker.lower_half = PLAYBACK_IN_PROGRESS;
-			load_block(upperhalf, wav, sample_idx);
-			dartt_write_multi(&upperhalf, &ds);
-			target_tracker.upper_half = WRITTEN_UNVISITED;
-
-			//start playback by writing nonzero retransmission period
-			renderer_ctl.retransmission_us = 1000000/wav.sampleRate;
-			dartt_write_multi(&samplerate, &ds);
-		}
-		
-		// read_playback_idx(rmsg_pos, dartt_serial_tx, cobs_serial_rx, renderer, ser);
-		dartt_read_multi(&bufferposition, &ds);
-		uint8_t bpos_region;
-		if(renderer_shadow.buffer_pos < (sizeof(renderer_shadow.recv_buffer)/sizeof(int16_t)) / 2)
-		{
-			bpos_region = BPOS_LOWER;
-		}
-		else
-		{
-			bpos_region = BPOS_UPPER;
-		}
-
-		if(target_tracker.lower_half == PLAYBACK_IN_PROGRESS && bpos_region == BPOS_UPPER)
-		{
-			target_tracker.lower_half = PLAYBACK_DONE;
-			target_tracker.upper_half = PLAYBACK_IN_PROGRESS;
-			load_block(lowerhalf, wav, sample_idx);
-			dartt_write_multi(&lowerhalf, &ds);
-		}
-		else if(target_tracker.upper_half == PLAYBACK_IN_PROGRESS && bpos_region == BPOS_LOWER)
-		{
-			target_tracker.upper_half = PLAYBACK_DONE;
-			target_tracker.lower_half = PLAYBACK_IN_PROGRESS;
-			load_block(upperhalf, wav, sample_idx);
-			dartt_write_multi(&upperhalf, &ds);
-		}
-		
-    }
-    
-	renderer_ctl.retransmission_us = 0;
-	dartt_write_multi(&samplerate, &ds);
-
-    
-    drwav_uninit(&wav);
-    
     printf("\nDone!\n");
     return 0;
 }
