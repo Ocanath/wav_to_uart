@@ -1,0 +1,4 @@
+venv/
+*.opus
+*.wav
+dartt_wav_player
