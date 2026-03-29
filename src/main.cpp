@@ -9,7 +9,6 @@
 #include "cobs.h"
 #include "dartt.h"
 #include "dartt_sync.h"
-#include "serial_callbacks.h"
 #include "AudioWriter.h"
 
 

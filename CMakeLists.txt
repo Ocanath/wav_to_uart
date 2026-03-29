@@ -32,7 +32,6 @@ add_executable(wav_parser
     src/wav_parsing.cpp
     src/ble.cpp
 	embedded/audio.c
-	src/serial_callbacks.cpp
 	src/AudioWriter.cpp
 )
 
