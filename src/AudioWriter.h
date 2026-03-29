@@ -3,7 +3,6 @@
 #include "dartt_sync.h"
 #include "serial.h"
 #include "audio.h"
-#include "serial_callbacks.h"
 #include "wav_parsing.h"
 
 enum {UNWRITTEN, WRITTEN_UNVISITED, PLAYBACK_IN_PROGRESS, PLAYBACK_DONE};
@@ -29,8 +28,8 @@ class AudioWriter
 		audio_renderer_t renderer_ctl;
 		audio_renderer_t renderer_shadow;		
 		dartt_sync_t ds;
-		unsigned char tx_buf_mem[SERIAL_BUFFER_SIZE];
-		unsigned char rx_buf_mem[SERIAL_BUFFER_SIZE];
+		unsigned char * tx_buf_mem;
+		unsigned char * rx_buf_mem;
 
 		//update sample rate on the peripheral
 		dartt_buffer_t samplerate;
