@@ -16,8 +16,8 @@ int tx_blocking(unsigned char addr, dartt_buffer_t * b, void * user_context, uin
 	}
 	Serial * pser = (Serial*)(user_context);
 	cobs_buf_t cb = {
-		.buf = b->buf,
-		.size = b->size,
+		.buf = tx_mem,
+		.size = sizeof(tx_mem),
 		.length = b->len,
 		.encoded_state = COBS_DECODED
 	};
