@@ -17,3 +17,14 @@ wav-to-uart audioReadyToGo.wav
 To scale the volume using ffmpeg to the achievable system range:
 
 `ffmpeg -i input.wav -af "volume=690/32767" -c:a pcm_s16le output.wav`
+
+
+## Linking for Embedded
+
+The `embedded/` directory is meant to be submoduled into whatever embedded build compilation toolchain you have. I.e.  for stm32cubide, the recommended flow is:
+
+1. submodule this repo
+1. update the .project, .cproject settings with external/dartt_audio/embedded/ - i.e. link audio.c and audio.h from the submoduled repo
+
+That's it!
+
