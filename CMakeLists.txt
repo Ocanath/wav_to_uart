@@ -31,12 +31,12 @@ add_executable(wav_parser
     src/args.cpp
     src/wav_parsing.cpp
     src/ble.cpp
-	src/audio.c
+	embedded/audio.c
 	src/serial_callbacks.cpp
 	src/AudioWriter.cpp
 )
 
-target_include_directories(wav_parser PRIVATE src)
+target_include_directories(wav_parser PRIVATE src embedded)
 
 target_link_libraries(wav_parser
     PRIVATE
