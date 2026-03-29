@@ -9,9 +9,6 @@ add_subdirectory(external/byte-stuffing)
 add_subdirectory(external/serial-cross-platform)
 add_subdirectory(external/dartt-protocol)
 
-include(external/simpleble/cmake/prelude.cmake)
-include(external/simpleble/cmake/epilogue.cmake)
-add_subdirectory(external/simpleble/simpleble)
 
 # v0.6.1 compiles with /WX; suppress MSVC STL array-iterator deprecation warnings
 # that became errors in VS 2022 17.x+. Must be a compiler flag, not a source #define.
@@ -38,7 +35,6 @@ target_include_directories(wav_parser PRIVATE src embedded)
 
 target_link_libraries(wav_parser
     PRIVATE
-    simpleble::simpleble
     serial
 	dartt_protocol
     dartt_checksum
