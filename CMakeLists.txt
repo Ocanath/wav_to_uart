@@ -51,16 +51,5 @@ target_link_libraries(dartt_audio
 
 # Examples — only built when DARTT_AUDIO_BUILD_EXAMPLES=ON
 if(DARTT_AUDIO_BUILD_EXAMPLES)
-    add_executable(example_playback
-        examples/example_playback.cpp
-        examples/args.cpp
-    )
-
-    target_include_directories(example_playback PRIVATE examples)
-
-    target_link_libraries(example_playback PRIVATE dartt_audio)
-
-    set_target_properties(example_playback PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples
-    )
+    add_subdirectory(examples)
 endif()
