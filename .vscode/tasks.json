@@ -1,0 +1,29 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "cmake --build ${workspaceFolder}/build --target wav_parser",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "cmake configure (Debug)",
+            "type": "shell",
+            "command": "cmake -B ${workspaceFolder}/build -DCMAKE_BUILD_TYPE=Debug",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        }
+    ]
+}
