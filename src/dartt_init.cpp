@@ -102,7 +102,7 @@ void init_ds(dartt_sync_t & ds, Serial & ser)
 	ds.rx_buf.len = 0;
 	ds.blocking_tx_callback = &tx_blocking;
 	ds.blocking_rx_callback = &rx_blocking;
-	ds.user_context_rx = &ser;
+	ds.user_context_tx = &ser;
 	ds.user_context_rx = &ser;
 	ds.timeout_ms = 10;
 }
