@@ -10,13 +10,6 @@ add_subdirectory(external/serial-cross-platform)
 add_subdirectory(external/dartt-protocol)
 
 
-# v0.6.1 compiles with /WX; suppress MSVC STL array-iterator deprecation warnings
-# that became errors in VS 2022 17.x+. Must be a compiler flag, not a source #define.
-if(MSVC)
-    target_compile_definitions(simpleble PRIVATE _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING _SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS)
-endif()
-
-
 # Compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
