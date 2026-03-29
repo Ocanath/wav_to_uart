@@ -10,6 +10,10 @@ unsigned char rx_cobs_mem[SERIAL_BUFFER_SIZE] = {};
 
 int tx_blocking(unsigned char addr, dartt_buffer_t * b, void * user_context, uint32_t timeout)
 {
+	if(user_context == NULL)
+	{
+		return -2;
+	}
 	Serial * pser = (Serial*)(user_context);
 	cobs_buf_t cb = {
 		.buf = b->buf,
@@ -35,6 +39,10 @@ int tx_blocking(unsigned char addr, dartt_buffer_t * b, void * user_context, uin
 
 int rx_blocking(dartt_buffer_t * buf, void * user_context, uint32_t timeout)
 {
+	if(user_context == NULL)
+	{
+		return -2;
+	}
 	Serial * pser = (Serial*)(user_context);
 	cobs_buf_t cb_enc =
 	{
