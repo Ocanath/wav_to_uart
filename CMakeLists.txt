@@ -1,42 +1,66 @@
 cmake_minimum_required(VERSION 3.22)
-project(ability_hand_test C CXX)
+project(dartt_audio C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+option(DARTT_AUDIO_BUILD_EXAMPLES "Build dartt_audio example programs" OFF)
 
-# Submodules
-add_subdirectory(external/byte-stuffing)
-add_subdirectory(external/serial-cross-platform)
-add_subdirectory(external/dartt-protocol)
+# Only apply global compiler flags when built as the top-level project
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
+endif()
 
+# Dependencies: use parent project targets if already defined, otherwise pull from external/.
+# This allows a parent CMake project to supply dartt-protocol, serial-cross-platform, and
+# byte-stuffing rather than building duplicate copies.
+if(NOT TARGET dartt_protocol)
+    add_subdirectory(external/dartt-protocol)
+endif()
+if(NOT TARGET serial)
+    add_subdirectory(external/serial-cross-platform)
+endif()
+if(NOT TARGET cobs)
+    add_subdirectory(external/byte-stuffing)
+endif()
 
-# Compiler flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
-
-# Create the wav_parser executable
-add_executable(wav_parser
-    src/main.cpp
-    src/args.cpp
+# Library
+add_library(dartt_audio STATIC
+    src/AudioWriter.cpp
     src/wav_parsing.cpp
-	embedded/audio.c
-	src/AudioWriter.cpp
 )
 
-target_include_directories(wav_parser PRIVATE src embedded)
+target_compile_features(dartt_audio PUBLIC cxx_std_20)
 
-target_link_libraries(wav_parser
-    PRIVATE
-    serial
-	dartt_protocol
-    dartt_checksum
-    cobs
-    PPP
+# src/ exposes AudioWriter.h, wav_parsing.h, dr_wav.h
+# embedded/ exposes audio.h (shared with embedded firmware)
+target_include_directories(dartt_audio
+    PUBLIC
+        src
+        embedded
 )
 
-
-# Set output directory
-set_target_properties(wav_parser PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+target_link_libraries(dartt_audio
+    PUBLIC
+        dartt_protocol
+        dartt_checksum
+        serial
+        cobs
 )
+
+# Examples — only built when DARTT_AUDIO_BUILD_EXAMPLES=ON
+if(DARTT_AUDIO_BUILD_EXAMPLES)
+    add_executable(example_playback
+        examples/example_playback.cpp
+        examples/args.cpp
+    )
+
+    target_include_directories(example_playback PRIVATE examples)
+
+    target_link_libraries(example_playback PRIVATE dartt_audio)
+
+    set_target_properties(example_playback PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/examples
+    )
+endif()
