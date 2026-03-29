@@ -1,0 +1,101 @@
+#include "dartt_init.h"
+#include <cstdio>
+
+ #define NUM_BYTES_COBS_OVERHEAD	2	//we have to tell dartt our serial buffers are smaller than they are, so the COBS layer has room to operate. This allows for functional multiple message handling with write_multi and read_multi for large configs
+
+unsigned char tx_mem[SERIAL_BUFFER_SIZE] = {};
+unsigned char rx_dartt_mem[SERIAL_BUFFER_SIZE] = {};
+unsigned char rx_cobs_mem[SERIAL_BUFFER_SIZE] = {};
+
+
+int tx_blocking(unsigned char addr, dartt_buffer_t * b, void * user_context, uint32_t timeout)
+{
+	Serial * pser = (Serial*)(user_context);
+	cobs_buf_t cb = {
+		.buf = b->buf,
+		.size = b->size,
+		.length = b->len,
+		.encoded_state = COBS_DECODED
+	};
+	int rc = cobs_encode_single_buffer(&cb);
+	if (rc != 0)
+	{
+		return rc;
+	}
+	rc = pser->write(cb.buf, (int)cb.length);
+	if(rc == (int)cb.length)
+	{
+		return DARTT_PROTOCOL_SUCCESS;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+int rx_blocking(dartt_buffer_t * buf, void * user_context, uint32_t timeout)
+{
+	Serial * pser = (Serial*)(user_context);
+	cobs_buf_t cb_enc =
+	{
+		.buf = rx_cobs_mem,
+		.size = sizeof(rx_cobs_mem),
+		.length = 0
+	};
+
+	int rc;
+	rc = pser->read_until_delimiter(cb_enc.buf, cb_enc.size, 0, timeout);
+
+	if (rc >= 0)
+	{
+		cb_enc.length = rc;	//load encoded length (raw buffer)
+	}
+	else if (rc == -2)
+	{
+		return -7;
+	}
+	else
+	{
+		return -1;
+	}
+
+	cobs_buf_t cb_dec =
+	{
+		.buf = buf->buf,
+		.size = buf->size,
+		.length = 0
+	};
+	rc = cobs_decode_double_buffer(&cb_enc, &cb_dec);
+	buf->len = cb_dec.length;	//critical - we are aliasing this read buffer in sync, but must update the length to the cobs decoded value
+
+	if (rc != COBS_SUCCESS)
+	{
+		return rc;
+	}
+	else
+	{
+		return DARTT_PROTOCOL_SUCCESS;
+	}
+    
+}
+
+void init_ds(dartt_sync_t & ds, Serial & ser)
+{
+	ds.address = 0;	//must be mapped
+	ds.ctl_base = {};	//must be assigned
+	ds.periph_base = {};	//must be assigned
+	ds.base_offset = 0;
+	ds.msg_type = TYPE_SERIAL_MESSAGE;
+	ds.tx_buf.buf = tx_mem;
+	ds.tx_buf.size = sizeof(tx_mem) - NUM_BYTES_COBS_OVERHEAD;		//DO NOT CHANGE. This is for a good reason. See above note
+	ds.tx_buf.len = 0;
+	ds.rx_buf.buf = rx_dartt_mem;
+	ds.rx_buf.size = sizeof(rx_dartt_mem) - NUM_BYTES_COBS_OVERHEAD;	//DO NOT CHANGE. This is for a good reason. See above note
+	ds.rx_buf.len = 0;
+	ds.blocking_tx_callback = &tx_blocking;
+	ds.blocking_rx_callback = &rx_blocking;
+	ds.user_context_rx = &ser;
+	ds.user_context_rx = &ser;
+	ds.timeout_ms = 10;
+}
+

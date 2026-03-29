@@ -32,6 +32,7 @@ add_executable(wav_parser
     src/wav_parsing.cpp
     src/ble.cpp
 	src/audio.c
+	src/dartt_init.cpp
 )
 
 target_include_directories(wav_parser PRIVATE src)
