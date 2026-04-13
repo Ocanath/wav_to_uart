@@ -32,16 +32,16 @@ class AudioWriter
 		unsigned char * rx_buf_mem;
 
 		//update sample rate on the peripheral
-		dartt_buffer_t samplerate;
+		dartt_mem_t samplerate;
 		//for updating the buffer position. one-time write
-		dartt_buffer_t bufferposition;
+		dartt_mem_t bufferposition;
 		//update first half of render buf on the peripheral
-		dartt_buffer_t lowerhalf;
+		dartt_mem_t lowerhalf;
 		//update second half of render buf on the peripheral
-		dartt_buffer_t upperhalf;
+		dartt_mem_t upperhalf;
 
 		drwav wav;	
-		int load_block(dartt_buffer_t &wmsg, drwav_uint64 & sample_idx);
+		int load_block(dartt_mem_t &wmsg, drwav_uint64 & sample_idx);
 };
 
 

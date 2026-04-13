@@ -135,14 +135,12 @@ AudioWriter::AudioWriter(unsigned char addr, uint32_t dartt_offset, Serial & ser
 	samplerate = {
 		.buf = (unsigned char *)(&renderer_ctl.retransmission_us),
 		.size = sizeof(renderer_ctl.retransmission_us),
-		.len = sizeof(renderer_ctl.retransmission_us)
 	};
 
 		//for updating the buffer position. one-time write
 	bufferposition = {
 		.buf = (unsigned char *)(&renderer_ctl.buffer_pos),
 		.size = sizeof(renderer_ctl.buffer_pos),
-		.len = sizeof(renderer_ctl.buffer_pos)
 	};
 
 	size_t audiobuf_nsamples = sizeof(renderer_ctl.recv_buffer)/sizeof(int16_t);
@@ -150,14 +148,12 @@ AudioWriter::AudioWriter(unsigned char addr, uint32_t dartt_offset, Serial & ser
 	lowerhalf = {
 		.buf = (unsigned char *)(&renderer_ctl.recv_buffer[0]),
 		.size = sizeof(renderer_ctl.recv_buffer) / 2,
-		.len = sizeof(renderer_ctl.recv_buffer) / 2
 	};
 
 	//update second half of render buf on the peripheral
 	upperhalf = {
 		.buf = (unsigned char *)(&renderer_ctl.recv_buffer[audiobuf_nsamples/2]),
 		.size = sizeof(renderer_ctl.recv_buffer) / 2,
-		.len = sizeof(renderer_ctl.recv_buffer) / 2
 	};
 }
 
@@ -266,9 +262,10 @@ int AudioWriter::play(const char * filename)
 }
 
 
-int AudioWriter::load_block(dartt_buffer_t &wmsg, drwav_uint64 & sample_idx)
+int AudioWriter::load_block(dartt_mem_t &wmsg, drwav_uint64 & sample_idx)
 {
-	for(wmsg.len = 0; wmsg.len < wmsg.size;)
+	
+	for(size_t i = 0; i < wmsg.size;)
 	{
 		int16_t wav_sample = 0;
 		int numwritten = drwav_read_pcm_frames(&wav, 1, &wav_sample);
@@ -278,8 +275,13 @@ int AudioWriter::load_block(dartt_buffer_t &wmsg, drwav_uint64 & sample_idx)
 		}
 
 		sample_idx++;
-		wmsg.buf[wmsg.len++] = (unsigned char)(wav_sample & 0x00FF);
-		wmsg.buf[wmsg.len++] = (unsigned char)((wav_sample & 0xFF00) >> 8);
+
+		if(i + 2 > wmsg.size)
+		{
+			return DARTT_ERROR_MEMORY_OVERRUN;
+		}
+		wmsg.buf[i++] = (unsigned char)(wav_sample & 0x00FF);
+		wmsg.buf[i++] = (unsigned char)((wav_sample & 0xFF00) >> 8);
 	}
 	return 0;
 }
