@@ -28,15 +28,15 @@ def get_throughput_fps(nframes, framesize=2, nbytes_overhead=5, baudrate=921600,
 
 
 """
-Computes the average delay time between frames for a real measurement of bytes. Measure the time
+Computes the average delay time between bytes for a real measurement of N bytes. Measure the time
 elapsed on the wire to transmit N bytes (in MICROSECONDS), and input N and the wiretime, as well as the UART settings.
 
-Outputs the average interframe time in microseconds
+Outputs the average interbyte time in microseconds
 """
 def get_interframe_delay_us(nbytes, total_wiretime_us, baudrate=921600, nstopbits=1, nparitybits=0):
 	theoretical_wiretime_us = wire_time(nbytes, baudrate, nstopbits, nparitybits, 0)
-	tdif = total_wiretime_us - theoretical_wiretime_us
+	tdif = total_wiretime_us - theoretical_wiretime_us*1e6
 	if(tdif < 0):	
 		print("WARNING: listed parameters produce an impossible result. Check input settings for correctness")
-		return 0
+		# return 0
 	return tdif/nbytes
