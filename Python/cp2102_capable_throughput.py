@@ -31,6 +31,7 @@ computer_response_time = 230.70e-6
 nb_serial_readrequest = 2+2+1+2+2
 nb_max_read_reply = 1*4+(5+2)	#subject to change
 nframes = (nb_max_read_reply - (serial_overhead + 2)) / 4
+print(f"Number of frames read back per read request is {nframes}")
 read_request_wiretime = wire_time(nb_serial_readrequest, 921600, 1, 0, pc_ift_us)
 print(f"RRWT {read_request_wiretime*1e6}")
 read_request_response_wiretime = wire_time(nb_max_read_reply, 921600, 1, 0, 0)
@@ -38,5 +39,5 @@ print(f"RRRWT {read_request_response_wiretime*1e6}")
 
 exchange_time_total = (read_request_response_wiretime + stm32_response_time + read_request_response_wiretime + computer_response_time)
 nostream_hz = nframes/exchange_time_total
-print(f"Total time {exchange_time_total}")
+print(f"Total time {exchange_time_total*1e6} microseconds")
 print(f"est dartt non-streaming throughput: {nostream_hz} Hz")

@@ -40,3 +40,17 @@ def get_interframe_delay_us(nbytes, total_wiretime_us, baudrate=921600, nstopbit
 		print("WARNING: listed parameters produce an impossible result. Check input settings for correctness")
 		# return 0
 	return tdif/nbytes
+
+
+
+"""
+Determine how many bytes must be dispatched in one frame in order to occupy a specific time interval.
+NOTE: Input time interval is MICROSECONDS, not seconds.
+"""
+def bytes_per_us(us, baudrate=921600, nstopbits=1, nparitybits=0, interframe_delay_us=0):
+	nstartbits = 1	#always 1 for UART
+	nbits_per_byte = 8+nstartbits+nstopbits+nparitybits
+	nbytes =  (us*1e-6) / (((nbits_per_byte)/baudrate) + interframe_delay_us*1e-6)	#total wire time in seconds
+	return nbytes
+
+
