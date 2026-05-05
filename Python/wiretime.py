@@ -7,10 +7,8 @@ Inputs:
 	nstopbits: basic uart setting defining framesize. default 1. Is most commonly 1 or 2. 
 	nparitybits: basic uart setting for parity bit. Default 0. Can be 0 or 1. Not input filtered so be careful
 	interframe_delay_us: delay between frames in microseconds. 
-		Note: On a real system, you may want to compute this as an average across multiple frames.
-			1. Measure the wire time to send N bytes
-			2. Subtract the wire_tim for an interframe delay = 0
-			3. 
+		Note: On a real system, you may want to compute this as an average across multiple frames. Use the helper 
+		function get_interframe_delay_us to determine this from an average measurement
 
 """
 def wire_time(nbytes, baudrate=921600, nstopbits=1, nparitybits=0, interframe_delay_us=0):
@@ -28,3 +26,17 @@ def get_throughput_fps(nframes, framesize=2, nbytes_overhead=5, baudrate=921600,
 	tsec = wire_time(nbytes, baudrate, nstopbits, nparitybits, interframe_delay_us)
 	return nframes/tsec
 
+
+"""
+Computes the average delay time between frames for a real measurement of bytes. Measure the time
+elapsed on the wire to transmit N bytes (in MICROSECONDS), and input N and the wiretime, as well as the UART settings.
+
+Outputs the average interframe time in microseconds
+"""
+def get_interframe_delay_us(nbytes, total_wiretime_us, baudrate=921600, nstopbits=1, nparitybits=0):
+	theoretical_wiretime_us = wire_time(nbytes, baudrate, nstopbits, nparitybits, 0)
+	tdif = total_wiretime_us - theoretical_wiretime_us
+	if(tdif < 0):	
+		print("WARNING: listed parameters produce an impossible result. Check input settings for correctness")
+		return 0
+	return tdif/nbytes
