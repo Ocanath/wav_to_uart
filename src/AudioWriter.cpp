@@ -5,7 +5,7 @@
 TODO: move the callbacks fully into this scope, hiding it from other TU's
 This means hiding sizes, dynamically allocating the tx and rx buffers, a destructor
 */
-#define _AUDIO_SERIAL_BUFFER_SIZE 32
+#define _AUDIO_SERIAL_BUFFER_SIZE 128
 #define _AUDIO_NUM_BYTES_COBS_OVERHEAD	2	//give cobs room to operate
 
 
