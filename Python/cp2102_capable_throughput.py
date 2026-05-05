@@ -1,25 +1,36 @@
 from wiretime import get_interframe_delay_us, get_throughput_fps, wire_time
 
-serial_overhead = 5
 
 
+
+## Original cobs encoded single frame
+bd_audiostreaming = 921600
+
+original_encodingfreq = 17631	#fps
+adjust_nframes = 1000
+original_wiretime_for_1000_frames_us = adjust_nframes/original_encodingfreq *1e6
+original_nbytes_per_frame = 4
+
+adjusted_pc_ift_us = get_interframe_delay_us(adjust_nframes*original_nbytes_per_frame, original_wiretime_for_1000_frames_us, bd_audiostreaming, 1, 0)
+pc_ift_us = adjusted_pc_ift_us
+print(f"Based on og audio, adjusted interframe delay is {adjusted_pc_ift_us}")
+original_frame_wire_time = wire_time(original_nbytes_per_frame*1, bd_audiostreaming, 1, 0, adjusted_pc_ift_us)
+og_samplingfreq = 1/original_frame_wire_time
+print(f"Original method with 50% overhead yielded {og_samplingfreq} samples per second audio sampling frequency")
+
+
+serial_overhead = 7	#1 byte address, 2 bytes index, 2 bytes crc, 2 bytes cobs
 nbytes_from_measurement = 9
 t_us_from_measurement = 123.141
 
 
-pc_ift_us = get_interframe_delay_us(nbytes_from_measurement, t_us_from_measurement, 921600, 1, 0)
-print(f"Interframe delay is {pc_ift_us} microseconds")
-actual_est_throughput = get_throughput_fps(32, 2, serial_overhead, 921600, 1, 0, pc_ift_us)
-print(f"From PC, based on {nbytes_from_measurement} bytes at {t_us_from_measurement} us wire time, your throughput will be:\n    {actual_est_throughput} Hz")
-
-
-
-
 tus_from_STM32 = 335
 nbytes_from_STM32 = 31
-stm32_ift_us = get_interframe_delay_us(nbytes_from_STM32, tus_from_STM32, 921600, 1, 0)
-print(f"On stm32, interframe delay is {stm32_ift_us}")
-actual_est_throughput = get_throughput_fps(32, 2, serial_overhead, 921600, 1, 0, stm32_ift_us)
+stm32_ift_us = get_interframe_delay_us(nbytes_from_STM32, tus_from_STM32, bd_audiostreaming, 1, 0)
+print(f"    On stm32, interframe delay is {stm32_ift_us}")
+if(stm32_ift_us < 0):
+	print("    This small negative value is essentially measurement error from the logic analyzer. Treat STM32 interbyte delay as equal to zero")
+actual_est_throughput = get_throughput_fps(32, 2, serial_overhead, bd_audiostreaming, 1, 0, stm32_ift_us)
 print(f"From STM32, you can expect {actual_est_throughput} Hz output freq")
 
 
@@ -30,11 +41,11 @@ pc_read_response_time = 230.70e-6
 
 nb_serial_readrequest = 2+2+1+2+2
 nb_max_read_reply = 1*4+(5+2)	#subject to change
-nframes = (nb_max_read_reply - (serial_overhead + 2)) / 4
+nframes = (nb_max_read_reply - serial_overhead) / 4
 print(f"Number of frames read back per read request is {nframes}")
-read_request_wiretime = wire_time(nb_serial_readrequest, 921600, 1, 0, pc_ift_us)
+read_request_wiretime = wire_time(nb_serial_readrequest, bd_audiostreaming, 1, 0, pc_ift_us)
 print(f"RRWT {read_request_wiretime*1e6}")
-read_request_response_wiretime = wire_time(nb_max_read_reply, 921600, 1, 0, 0)
+read_request_response_wiretime = wire_time(nb_max_read_reply, bd_audiostreaming, 1, 0, 0)
 print(f"RRRWT {read_request_response_wiretime*1e6}")
 
 exchange_time_total = (read_request_response_wiretime + stm32_response_time + read_request_response_wiretime + pc_read_response_time)
@@ -44,9 +55,8 @@ print(f"est dartt non-streaming throughput: {nostream_hz} Hz")
 
 
 ## estimated audio throughput given response timing
-bd_audiostreaming = 921600
 nb_max_read_reply = 71	#subject to change
-nframes = (nb_max_read_reply - (serial_overhead + 2)) / 2	#2 byte frame size, 2 byte adtl overhead from index
+nframes = (nb_max_read_reply - serial_overhead) / 2	#2 byte frame size, 2 byte adtl overhead from index
 print(f"Nframes is {nframes}")
 
 pc_audioblock_transmission_time = wire_time(nb_max_read_reply, bd_audiostreaming, 1, 0, pc_ift_us)
@@ -58,3 +68,5 @@ print(f"Estimated PC streaming throughput with status polling, best case scenari
 
 audio_streaming_nopoll_throughput = nframes/(pc_audioblock_transmission_time)
 print(f"If status polling is (somehow) eliminated, PC throughput could theoretically grow to {audio_streaming_nopoll_throughput} Hz")
+
+
