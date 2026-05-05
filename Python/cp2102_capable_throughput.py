@@ -29,7 +29,7 @@ stm32_response_time = 18.444e-6		#seconds
 computer_response_time = 230.70e-6
 
 nb_serial_readrequest = 2+2+1+2+2
-nb_max_read_reply = 32	#subject to change
+nb_max_read_reply = 1*4+(5+2)	#subject to change
 nframes = (nb_max_read_reply - (serial_overhead + 2)) / 4
 read_request_wiretime = wire_time(nb_serial_readrequest, 921600, 1, 0, pc_ift_us)
 print(f"RRWT {read_request_wiretime*1e6}")
