@@ -14,7 +14,7 @@ echo - Applying highpass filter at 1000Hz
 echo - Applying lowpass filter at 10000Hz  
 echo - Scaling volume by 2000/32767 (0.061)
 
-ffmpeg.exe -i "%INPUT_FILE%" -ar 18000 -ac 1 -af "highpass=f=100,lowpass=f=18000,volume=2000/32767" -y "%OUTPUT_FILE%"
+ffmpeg.exe -i "%INPUT_FILE%" -ar 15000 -ac 1 -af "highpass=f=50,lowpass=f=15000,volume=3546/32767" -y "%OUTPUT_FILE%"
 
 if %errorlevel% equ 0 (
     echo Success! Output saved as: %OUTPUT_FILE%
