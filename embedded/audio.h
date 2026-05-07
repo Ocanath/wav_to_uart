@@ -11,6 +11,6 @@ typedef struct audio_renderer_t
 }audio_renderer_t;
 
 int32_t audio_stream(audio_renderer_t * a, uint32_t t_us);
-
+int32_t audio_stream_nosync(audio_renderer_t * a, int block_idx, uint32_t t_us);
 
 #endif

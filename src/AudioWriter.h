@@ -23,7 +23,7 @@ class AudioWriter
 			Serial & ser
 		);
 		~AudioWriter();
-		int play(const char * filename);
+		int play(const char * filename, bool sync=false);
 	private:
 		audio_renderer_t renderer_ctl;
 		audio_renderer_t renderer_shadow;		

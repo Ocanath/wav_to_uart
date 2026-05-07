@@ -164,7 +164,7 @@ AudioWriter::~AudioWriter()
 }
 
 
-int AudioWriter::play(const char * filename)
+int AudioWriter::play(const char * filename, bool sync)
 {
 	if (!drwav_init_file(&wav, filename, NULL)) {
         printf("Failed to open WAV file: %s\n", filename);
@@ -205,7 +205,12 @@ int AudioWriter::play(const char * filename)
 	{
 		return rc;
 	}
-
+	if(sync == true)
+	{
+		//start playback by writing nonzero retransmission period
+		renderer_ctl.retransmission_us = 1000000/wav.sampleRate;
+		dartt_write_multi(&samplerate, &ds);
+	}
 	while(sample_idx < wav.totalPCMFrameCount)
     {
 		if(target_tracker.lower_half == UNWRITTEN && target_tracker.upper_half == UNWRITTEN)
@@ -213,20 +218,38 @@ int AudioWriter::play(const char * filename)
 			load_block(lowerhalf, sample_idx);
 			dartt_write_multi(&lowerhalf, &ds);
 			target_tracker.lower_half = PLAYBACK_IN_PROGRESS;
-			load_block(upperhalf, sample_idx);
-			dartt_write_multi(&upperhalf, &ds);
-			target_tracker.upper_half = WRITTEN_UNVISITED;
-
-			//start playback by writing nonzero retransmission period
-			renderer_ctl.retransmission_us = 1000000/wav.sampleRate;
-			dartt_write_multi(&samplerate, &ds);
+			if(sync == true)
+			{
+				load_block(upperhalf, sample_idx);
+				dartt_write_multi(&upperhalf, &ds);
+				target_tracker.upper_half = WRITTEN_UNVISITED;
+			}
+			if(sync == false)
+			{
+				//start playback by writing nonzero retransmission period
+				renderer_ctl.retransmission_us = 1000000/wav.sampleRate;
+				dartt_write_multi(&samplerate, &ds);
+			}
 		}
 		
-		// read_playback_idx(rmsg_pos, dartt_serial_tx, cobs_serial_rx, renderer, ser);
-		rc = dartt_read_multi(&bufferposition, &ds);
-		if(rc != DARTT_PROTOCOL_SUCCESS)
+		if(sync)
 		{
-			break;
+			rc = dartt_read_multi(&bufferposition, &ds);
+			if(rc != DARTT_PROTOCOL_SUCCESS)
+			{
+				break;
+			}
+		}
+		else
+		{
+			if(target_tracker.lower_half == PLAYBACK_IN_PROGRESS)
+			{
+				renderer_shadow.buffer_pos = (sizeof(renderer_shadow.recv_buffer)/sizeof(int16_t)) / 2;
+			}
+			else if (target_tracker.upper_half == PLAYBACK_IN_PROGRESS)
+			{
+				renderer_shadow.buffer_pos = 0;
+			}
 		}
 		uint8_t bpos_region;
 		if(renderer_shadow.buffer_pos < (sizeof(renderer_shadow.recv_buffer)/sizeof(int16_t)) / 2)

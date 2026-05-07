@@ -34,3 +34,46 @@ int32_t audio_stream(audio_renderer_t * a, uint32_t t_us)
 		return a->recv_buffer[a->buffer_pos];
 	}
 }
+
+/** @brief simpler playback mechanism. Plays half buffers out of a, stopping when the end is reached. 
+ * Half buffers are switched based on block_idx
+ * 
+ */
+int32_t audio_stream_nosync(audio_renderer_t * a, int block_idx, uint32_t t_us)
+{
+	if(a == NULL)
+	{
+		return 0;
+	}
+	if(a->retransmission_us == 0)
+	{
+		prev_us = t_us;
+		return 0;
+	}
+
+	const size_t half_buffersize = (sizeof(a->recv_buffer)/sizeof(int16_t)) / 2;
+	uint32_t block_start = (uint32_t)block_idx * half_buffersize;
+	uint32_t block_end = block_start + half_buffersize;
+
+	if(a->buffer_pos < block_start || a->buffer_pos > block_end)
+	{
+		a->buffer_pos = block_start;
+	}
+
+	if(a->buffer_pos >= block_end)
+	{
+		return 0;
+	}
+
+	if(t_us - prev_us >= a->retransmission_us)
+	{
+		prev_us = t_us;
+		a->buffer_pos++;
+		if(a->buffer_pos >= block_end)
+		{
+			return 0;
+		}
+	}
+	return a->recv_buffer[a->buffer_pos];
+}
+
