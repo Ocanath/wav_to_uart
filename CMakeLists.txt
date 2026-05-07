@@ -46,6 +46,7 @@ target_link_libraries(dartt_audio
         dartt_protocol
         dartt_checksum
         serial
+		bytestream
         cobs
 )
 
