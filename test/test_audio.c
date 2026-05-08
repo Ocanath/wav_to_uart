@@ -103,3 +103,41 @@ void test_audio_overflow(void)
         TEST_ASSERT_EQUAL(3, v2);
 }
 
+
+
+void test_audio_nostream(void)
+{
+        audio_renderer_t a = {};
+        a.retransmission_us = 25;
+        for(int i = 0; i < sizeof(a.recv_buffer)/sizeof(int16_t); i++)
+        {
+                a.recv_buffer[i] = i+1;
+                TEST_ASSERT_NOT_EQUAL(0, a.recv_buffer[i]);     //must be nonzero or test is confused
+        }
+
+        TEST_ASSERT_EQUAL(0, a.buffer_pos);
+        // printf("First bpos = %d\n", a.buffer_pos);
+        int32_t val = 0;
+        val = audio_stream_nosync(&a, 0, 50);
+        TEST_ASSERT_EQUAL(1, a.buffer_pos);
+        uint32_t tus = 50;
+        for(int i = 0; i < 1000; i++)
+        {
+                val = audio_stream_nosync(&a, 0, tus);
+                tus+=50;
+        }
+        val = audio_stream_nosync(&a, 0, tus+=50);
+        TEST_ASSERT_EQUAL(sizeof(a.recv_buffer)/sizeof(int16_t)/2-1, a.buffer_pos);
+        printf("Large overrun, bpos = %d\n", a.buffer_pos);
+        
+        val = audio_stream_nosync(&a, 1, 10000);
+        
+        printf("Buffer switchover, bpos = %d\n", a.buffer_pos);
+        for(int i = 0; i < 1000; i++)
+        {
+                val = audio_stream_nosync(&a, 1, tus);
+                tus+=50;
+        }
+        TEST_ASSERT_EQUAL(sizeof(a.recv_buffer)/sizeof(int16_t)-1, a.buffer_pos);
+        printf("second large overrun, bpos = %d\n", a.buffer_pos);
+}
