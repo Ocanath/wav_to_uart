@@ -213,6 +213,7 @@ int AudioWriter::play(const char * filename, bool sync)
 	{
 		//start playback by writing nonzero retransmission period
 		renderer_ctl.retransmission_us = 1000000/wav.sampleRate;
+		dartt_write_multi(&samplerate, &ds);
 	}
 	else
 	{
