@@ -8,9 +8,11 @@ typedef struct audio_renderer_t
 	uint32_t retransmission_us;	//time delay between adjacent samples in microseconds. sets sampling frequency
 	uint32_t buffer_pos;		//read-only for writer: position in the recv buffer
 	int16_t recv_buffer[64];	//look-ahead, samples. Make this an even number.
+	uint32_t prev_us;
 }audio_renderer_t;
 
 int32_t audio_stream(audio_renderer_t * a, uint32_t t_us);
 int32_t audio_stream_nosync(audio_renderer_t * a, int block_idx, uint32_t t_us);
+void audio_sample(audio_renderer_t * a, int16_t in,  uint32_t t_us);
 
 #endif
