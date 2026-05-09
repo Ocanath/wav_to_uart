@@ -29,6 +29,7 @@ endif()
 add_library(dartt_audio STATIC
     src/AudioWriter.cpp
     src/wav_parsing.cpp
+    src/wiretime.c
 )
 
 target_compile_features(dartt_audio PUBLIC cxx_std_20)

@@ -1,6 +1,5 @@
 #include "wiretime.h"
 #include <stdint.h>
-#include <stdio.h>
 
 int32_t wire_time_us(int nbytes, int baudrate, int nstopbits, int nparitybits, int32_t interframe_delay_us)
 {
@@ -17,7 +16,6 @@ float get_throughput_fps(int nframes, int framesize, int nbytes_overhead, int ba
     int32_t t_us = wire_time_us(nbytes, baudrate, nstopbits, nparitybits, interframe_delay_us);
     return (float)nframes*1000000.f/((float)t_us);
 }
-
 
 int32_t bytes_per_us(int32_t us, int baudrate, int nstopbits, int nparitybits, int32_t interframe_delay_us)
 {

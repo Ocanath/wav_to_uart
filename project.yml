@@ -101,8 +101,10 @@
     - -:test/support
   :source:
     - embedded/**
+    - src/**
   :include:
-    - embedded/** # In simple projects, this entry often duplicates :source
+    - embedded/**
+    - src/**
   :support:
     - test/support
   :libraries: []
