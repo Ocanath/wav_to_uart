@@ -2,11 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug wav_parser",
+            "name": "Debug player",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/wav_parser",
-            "args": ["build/bin/IsAnyOneThere_processed.wav", "0", "71", "--baudrate", "921600"],
+            "program": "${workspaceFolder}/build/examples/dartt_wav_player",
+            "args": ["${workspaceFolder}/scripts/RebelPathCello_processed.wav", "0", "72", "--baudrate", "921600"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
