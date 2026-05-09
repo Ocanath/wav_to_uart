@@ -18,14 +18,6 @@ float get_throughput_fps(int nframes, int framesize, int nbytes_overhead, int ba
     return (float)nframes*1000000.f/((float)t_us);
 }
 
-int32_t get_interframe_delay_us(int nbytes, int32_t total_wiretime_us, int baudrate, int nstopbits, int nparitybits)
-{
-    int32_t theoretical_us = wire_time_us(nbytes, baudrate, nstopbits, nparitybits, 0);
-    int32_t tdif = total_wiretime_us - theoretical_us;
-    if (tdif < 0)
-        fprintf(stderr, "WARNING: listed parameters produce an impossible result. Check input settings for correctness\n");
-    return tdif / nbytes;
-}
 
 int32_t bytes_per_us(int32_t us, int baudrate, int nstopbits, int nparitybits, int32_t interframe_delay_us)
 {
