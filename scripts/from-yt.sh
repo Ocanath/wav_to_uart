@@ -71,7 +71,7 @@ echo "Saved processed audio as: $PROCESSED_WAV"
 
 echo
 echo "Step 4/4: Running dartt_wav_player..."
-./dartt_wav_player "$PROCESSED_WAV" 0 71 --baudrate 921600
+./dartt_wav_player "$PROCESSED_WAV" 0 72 --baudrate 921600
 if [ $? -ne 0 ]; then
     echo "Error running dartt_wav_player"
     exit 1
