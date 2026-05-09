@@ -64,16 +64,24 @@ int32_t audio_stream_nosync(audio_renderer_t * a, int block_idx, uint32_t t_us)
 	{
 		return 0;
 	}
+	int32_t retv = 0;
+	if(a->buffer_pos < block_end)
+	{
+		retv = a->recv_buffer[a->buffer_pos];
+	}
+	else
+	{
+		retv = 0;
+	}
 
 	if(t_us - prev_us >= a->retransmission_us)
 	{
 		prev_us = t_us;
-		a->buffer_pos++;
-		if(a->buffer_pos >= block_end)
+		if(a->buffer_pos < block_end)
 		{
-			return 0;
+			a->buffer_pos++;
 		}
 	}
-	return a->recv_buffer[a->buffer_pos];
+	return retv;
 }
 

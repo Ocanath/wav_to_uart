@@ -116,28 +116,52 @@ void test_audio_nostream(void)
         }
 
         TEST_ASSERT_EQUAL(0, a.buffer_pos);
-        // printf("First bpos = %d\n", a.buffer_pos);
         int32_t val = 0;
         val = audio_stream_nosync(&a, 0, 50);
+        TEST_ASSERT_EQUAL(1, val);
         TEST_ASSERT_EQUAL(1, a.buffer_pos);
-        uint32_t tus = 50;
+        val = audio_stream_nosync(&a, 0, 51);
+        TEST_ASSERT_EQUAL(2, val);
+        TEST_ASSERT_EQUAL(1, a.buffer_pos);
+
+        size_t firstblock = sizeof(a.recv_buffer)/sizeof(int16_t)/2;
+
+        uint32_t tus = 52;
         for(int i = 0; i < 1000; i++)
         {
                 val = audio_stream_nosync(&a, 0, tus);
                 tus+=50;
+
+                if(i == 0)
+                {
+                        TEST_ASSERT_EQUAL(2, val);
+                        TEST_ASSERT_EQUAL(1, a.buffer_pos);
+                }
+                else if(i <= firstblock-1)  //take off one since we started with one
+                {
+                        TEST_ASSERT_EQUAL(i+1, val);    //we did one, we skip the first since the time is stale, so we start increment at 3
+                }
         }
-        val = audio_stream_nosync(&a, 0, tus+=50);
-        TEST_ASSERT_EQUAL(sizeof(a.recv_buffer)/sizeof(int16_t)/2-1, a.buffer_pos);
-        printf("Large overrun, bpos = %d\n", a.buffer_pos);
+        TEST_ASSERT_EQUAL(sizeof(a.recv_buffer)/sizeof(int16_t)/2, a.buffer_pos);
+        TEST_ASSERT_EQUAL(0, val);
         
-        val = audio_stream_nosync(&a, 1, 10000);
-        
-        printf("Buffer switchover, bpos = %d\n", a.buffer_pos);
+        val = audio_stream_nosync(&a, 1, tus);
+        TEST_ASSERT_EQUAL(firstblock+1, val);     
+        TEST_ASSERT_EQUAL(firstblock+1, a.buffer_pos);    
+
         for(int i = 0; i < 1000; i++)
         {
                 val = audio_stream_nosync(&a, 1, tus);
                 tus+=50;
+                if(i == 0)
+                {
+                        TEST_ASSERT_EQUAL(firstblock+2, val);
+                }
+                if(i > 0 && i <= firstblock-1)
+                {
+                        TEST_ASSERT_EQUAL(a.buffer_pos, val);
+                }
         }
-        TEST_ASSERT_EQUAL(sizeof(a.recv_buffer)/sizeof(int16_t)-1, a.buffer_pos);
-        printf("second large overrun, bpos = %d\n", a.buffer_pos);
+        TEST_ASSERT_EQUAL(sizeof(a.recv_buffer)/sizeof(int16_t), a.buffer_pos);
+        TEST_ASSERT_EQUAL(0, val);
 }
