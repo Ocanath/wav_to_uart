@@ -1,6 +1,15 @@
 #include "wiretime.h"
 #include <stdint.h>
 
+float wire_time_us_f(int nbytes, int baudrate, int nstopbits, int nparitybits, float interframe_delay_us)
+{
+    int nstartbits = 1;
+    int nbits_per_byte = 8 + nstartbits + nstopbits + nparitybits;
+    float bit_time_us = (float)nbytes * (float)nbits_per_byte * 1000000.f / (float)baudrate;
+	float gaptime_us = (float)nbytes * interframe_delay_us;
+	return bit_time_us+gaptime_us;
+}
+
 int32_t wire_time_us(int nbytes, int baudrate, int nstopbits, int nparitybits, int32_t interframe_delay_us)
 {
     int nstartbits = 1;

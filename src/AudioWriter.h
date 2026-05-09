@@ -20,11 +20,15 @@ class AudioWriter
 	public:
 		AudioWriter(unsigned char addr, 
 			uint32_t dartt_offset,
-			Serial & ser
+			Serial & ser,
+			int interframe_delay_us=0
 		);
 		~AudioWriter();
 		int play(const char * filename, bool sync=false);
 	private:
+		int baudrate = 0;	//needed for wire time calculation
+		int interframe_delay = 0;	//optional, needed for wire time calculation
+
 		audio_renderer_t renderer_ctl;
 		audio_renderer_t renderer_shadow;		
 		dartt_sync_t ds;

@@ -1,5 +1,6 @@
 #include "AudioWriter.h"
 #include "cobs.h"
+#include "wiretime.h"
 
 /*
 TODO: move the callbacks fully into this scope, hiding it from other TU's
@@ -99,10 +100,13 @@ int _audio_rx_blocking(dartt_buffer_t * buf, void * user_context, uint32_t timeo
 }
 
 
-AudioWriter::AudioWriter(unsigned char addr, uint32_t dartt_offset, Serial & ser)
+AudioWriter::AudioWriter(unsigned char addr, uint32_t dartt_offset, Serial & ser, int interframe_delay_us)
 {
 	tx_buf_mem = new unsigned char[_AUDIO_SERIAL_BUFFER_SIZE];
 	rx_buf_mem = new unsigned char[_AUDIO_SERIAL_BUFFER_SIZE];
+	
+	baudrate = ser.get_baud_rate();
+	interframe_delay = interframe_delay_us;
 
 	ds.address = addr;
 	ds.base_offset = dartt_offset;
@@ -209,6 +213,15 @@ int AudioWriter::play(const char * filename, bool sync)
 	{
 		//start playback by writing nonzero retransmission period
 		renderer_ctl.retransmission_us = 1000000/wav.sampleRate;
+	}
+	else
+	{
+		size_t nb = sizeof(renderer_ctl.recv_buffer)/2;	//we send a half buffer at a time
+		nb += _AUDIO_NUM_BYTES_COBS_OVERHEAD;
+		nb += dartt_rw_overhead(ds.msg_type);
+		// int32_t wiretime_fullpacket = wire_time_us(nb, 921600, 1, 0, 3);
+		float wiretime_fullpacket = wire_time_us_f(nb, baudrate, 1, 0, 3.3073888565122793f);
+		renderer_ctl.retransmission_us = (int32_t)(wiretime_fullpacket/32.f);
 		dartt_write_multi(&samplerate, &ds);
 	}
 	while(sample_idx < wav.totalPCMFrameCount)
