@@ -54,19 +54,31 @@ print(f"Total time {exchange_time_total*1e6} microseconds")
 print(f"est dartt non-streaming throughput: {nostream_hz} Hz")
 
 
+## Recalc pc ift
+ntotalbytes = 5132552 - 246
+totaltime = 72.663615874
+pc_ift_us = get_interframe_delay_us(ntotalbytes, totaltime*1e6, 921600, 1, 0)
+print(f"New pc ift us is: {pc_ift_us}")
+
 ## estimated audio throughput given response timing
-nb_max_read_reply = 71	#subject to change
-nframes = (nb_max_read_reply - serial_overhead) / 2	#2 byte frame size, 2 byte adtl overhead from index
+bd_audiostreaming = 460800
+serial_overhead = 7
+nb_audioblocksize = 64+serial_overhead	#subject to change
+nframes = (nb_audioblocksize - serial_overhead) / 2	#2 byte frame size, 2 byte adtl overhead from index
 print(f"Nframes is {nframes}")
 
-pc_audioblock_transmission_time = wire_time(nb_max_read_reply, bd_audiostreaming, 1, 0, pc_ift_us)
-nb_audio_status = 1+2+2+2+4
-stm32_status_response = wire_time(nb_audio_status, bd_audiostreaming, 1, 0, 0)
-total_time = pc_audioblock_transmission_time + stm32_response_time + read_request_wiretime + stm32_response_time + stm32_status_response + pc_read_response_time
-audio_streaming_throughput = nframes/total_time
-print(f"Estimated PC streaming throughput with status polling, best case scenario given perfectly timed read request is {audio_streaming_throughput} Hz")
-
-audio_streaming_nopoll_throughput = nframes/(pc_audioblock_transmission_time)
-print(f"If status polling is (somehow) eliminated, PC throughput could theoretically grow to {audio_streaming_nopoll_throughput} Hz")
-
+pc_audioblock_transmission_time_us = wire_time(nb_audioblocksize, bd_audiostreaming, 1, 0, pc_ift_us)*1e6
+print(f"Frame transmission time is {pc_audioblock_transmission_time_us} microseconds")
+print(f"Individual frame wire time (retransmission_us must be {pc_audioblock_transmission_time_us/nframes}")	#you have to emit 32 frames in one audioblock transmission time
+rounded_retransmissionus = int(pc_audioblock_transmission_time_us/nframes)
+print(f"Rounded retransmission us: {rounded_retransmissionus}")
+actual_block_playbacktime = rounded_retransmissionus*nframes
+tailmsg = ""
+if(actual_block_playbacktime < pc_audioblock_transmission_time_us):
+	tailmsg =  f", beating the block transmission by {pc_audioblock_transmission_time_us - actual_block_playbacktime}"
+else:
+	tailmsg = f", lagging behind the next block transmission by {actual_block_playbacktime - pc_audioblock_transmission_time_us}"
+print(f"So the motor should theoretically actually finish block playback in {actual_block_playbacktime} us" + tailmsg)
+audio_streaming_nopoll_throughput = nframes/(pc_audioblock_transmission_time_us/1e6)
+print(f"If running nosync eliminated, you must encode audio file at {audio_streaming_nopoll_throughput} fps")
 
