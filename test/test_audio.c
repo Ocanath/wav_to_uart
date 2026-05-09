@@ -21,7 +21,8 @@ void test_audio_stream_overrun(void)
         audio_renderer_t a = {};
         audio_stream(&a, 0);    //loads up prev_us
         a.retransmission_us = 25;       //40khz, standard
-        for(int i = 0; i < sizeof(a.recv_buffer)/sizeof(int16_t); i++)
+		const size_t bufsize = sizeof(a.recv_buffer)/sizeof(int16_t);
+        for(int i = 0; i < bufsize; i++)
         {
                 a.recv_buffer[i] = i+1;
                 TEST_ASSERT_NOT_EQUAL(0, a.recv_buffer[i]);     //must be nonzero or test is confused
@@ -33,10 +34,10 @@ void test_audio_stream_overrun(void)
         TEST_ASSERT_EQUAL(0, v);
 
         a.buffer_pos = 0;
-        for(int us = 0; us < a.retransmission_us * (sizeof(a.recv_buffer)/sizeof(int16_t) + 10); us += 5)
+        for(int us = 0; us < a.retransmission_us * (bufsize + 10); us += 5)
         {
                 v = audio_stream(&a, us);
-                if(a.buffer_pos >= 64)
+                if(a.buffer_pos >= bufsize)
                 {
                         TEST_ASSERT_EQUAL(0, v);
                 }
