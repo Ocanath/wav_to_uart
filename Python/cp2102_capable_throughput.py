@@ -61,8 +61,7 @@ pc_ift_us = get_interframe_delay_us(ntotalbytes, totaltime*1e6, 921600, 1, 0)
 print(f"New pc ift us is: {pc_ift_us}")
 
 ## estimated audio throughput given response timing
-bd_audiostreaming = 460800
-serial_overhead = 7
+serial_overhead = 6
 nb_audioblocksize = 64+serial_overhead	#subject to change
 nframes = (nb_audioblocksize - serial_overhead) / 2	#2 byte frame size, 2 byte adtl overhead from index
 print(f"Nframes is {nframes}")

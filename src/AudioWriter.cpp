@@ -110,7 +110,7 @@ AudioWriter::AudioWriter(unsigned char addr, uint32_t dartt_offset, Serial & ser
 
 	ds.address = addr;
 	ds.base_offset = dartt_offset;
-	ds.msg_type = TYPE_SERIAL_MESSAGE;
+	ds.msg_type = TYPE_ADDR_MESSAGE;
 	ds.tx_buf.buf = tx_buf_mem;
 	ds.tx_buf.size = _AUDIO_SERIAL_BUFFER_SIZE - _AUDIO_NUM_BYTES_COBS_OVERHEAD;		//DO NOT CHANGE. This is for a good reason. See above note
 	ds.tx_buf.len = 0;
