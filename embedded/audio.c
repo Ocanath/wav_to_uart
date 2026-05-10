@@ -54,15 +54,22 @@ void audio_sample(audio_renderer_t * a, int16_t in,  uint32_t t_us)
 	uint32_t block_start = (uint32_t)block_idx * half_buffersize;
 	uint32_t block_end = block_start + half_buffersize;
 
+	if(a->buffer_pos < block_end)
+	{
+		a->recv_buffer[a->buffer_pos] = in;
+	}
+	else
+	{
+		return;
+	}
 	if(t_us - a->prev_us >= a->retransmission_us)
 	{
 		a->prev_us = t_us;
-		if(a->buffer_pos < block_end)
+		if(a->buffer_pos < block_end - 1)
 		{
 			a->buffer_pos++;
 		}
 	}
-	a->recv_buffer[a->buffer_pos] = in;
 }
 
 /** @brief simpler playback mechanism. Plays half buffers out of a, stopping when the end is reached. 

@@ -166,3 +166,35 @@ void test_audio_nostream(void)
         TEST_ASSERT_EQUAL(sizeof(a.recv_buffer)/sizeof(int16_t), a.buffer_pos);
         TEST_ASSERT_EQUAL(0, val);
 }
+
+void test_audio_sample(void)
+{
+	audio_renderer_t a = {};
+	const size_t halfsize = sizeof(a.recv_buffer)/sizeof(int16_t)/2;
+	a.retransmission_us = 31;
+	int16_t in = 1;
+	uint32_t t_us = 32;
+	for(int i = 0; i < 1000; i++)
+	{
+		audio_sample(&a, in++, t_us);
+		t_us += 32;
+	}
+	for(int i = 0; i < halfsize-1; i++)
+	{
+		TEST_ASSERT_EQUAL(i+1, a.recv_buffer[i]);
+	}
+	TEST_ASSERT_EQUAL(1000, a.recv_buffer[halfsize-1]);
+	a.buffer_pos = halfsize;
+	for(int i = 0; i < 1000; i++)
+	{
+		audio_sample(&a, in++, t_us);
+		t_us += 32;
+	}
+	for(int i = 0; i < halfsize-1; i++)
+	{
+		TEST_ASSERT_EQUAL(i+1001, a.recv_buffer[halfsize + i]);
+	}
+	TEST_ASSERT_EQUAL(2000, a.recv_buffer[halfsize + halfsize-1]);
+
+}
+
