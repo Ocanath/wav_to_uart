@@ -174,10 +174,19 @@ void test_audio_sample(void)
 	a.retransmission_us = 31;
 	int16_t in = 1;
 	uint32_t t_us = 32;
+	uint8_t trigger = 0;
 	for(int i = 0; i < 1000; i++)
 	{
-		audio_sample(&a, in++, t_us);
+		trigger = audio_sample(&a, in++, t_us);
 		t_us += 32;
+		if(i >= halfsize-1)
+		{
+			TEST_ASSERT_EQUAL(1, trigger);
+		}
+		else
+		{
+			TEST_ASSERT_EQUAL(0, trigger);
+		}
 	}
 	for(int i = 0; i < halfsize-1; i++)
 	{
@@ -187,8 +196,16 @@ void test_audio_sample(void)
 	a.buffer_pos = halfsize;
 	for(int i = 0; i < 1000; i++)
 	{
-		audio_sample(&a, in++, t_us);
+		trigger = audio_sample(&a, in++, t_us);
 		t_us += 32;
+		if(i >= halfsize-1)
+		{
+			TEST_ASSERT_EQUAL(1, trigger);
+		}
+		else
+		{
+			TEST_ASSERT_EQUAL(0, trigger);
+		}
 	}
 	for(int i = 0; i < halfsize-1; i++)
 	{

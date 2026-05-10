@@ -37,16 +37,16 @@ int32_t audio_stream(audio_renderer_t * a, uint32_t t_us)
 /** @brief
  *
  */
-void audio_sample(audio_renderer_t * a, int16_t in,  uint32_t t_us)
+uint8_t audio_sample(audio_renderer_t * a, int16_t in,  uint32_t t_us)
 {
 	if(a == NULL)
 	{
-		return;
+		return 0;
 	}
 	if(a->retransmission_us == 0)
 	{
 		a->prev_us = t_us;
-		return;
+		return 0;
 	}
 
 	const size_t half_buffersize = (sizeof(a->recv_buffer)/sizeof(int16_t)) / 2;
@@ -54,22 +54,21 @@ void audio_sample(audio_renderer_t * a, int16_t in,  uint32_t t_us)
 	uint32_t block_start = (uint32_t)block_idx * half_buffersize;
 	uint32_t block_end = block_start + half_buffersize;
 
-	if(a->buffer_pos < block_end)
+	if(a->buffer_pos >= block_end)
 	{
-		a->recv_buffer[a->buffer_pos] = in;
+		return 0;
 	}
-	else
-	{
-		return;
-	}
+
+	a->recv_buffer[a->buffer_pos] = in;
+	uint8_t at_end = (a->buffer_pos == block_end - 1);
+
 	if(t_us - a->prev_us >= a->retransmission_us)
 	{
 		a->prev_us = t_us;
 		if(a->buffer_pos < block_end - 1)
-		{
 			a->buffer_pos++;
-		}
 	}
+	return at_end;
 }
 
 /** @brief simpler playback mechanism. Plays half buffers out of a, stopping when the end is reached. 
