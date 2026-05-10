@@ -10,6 +10,21 @@ This means hiding sizes, dynamically allocating the tx and rx buffers, a destruc
 #define _AUDIO_NUM_BYTES_COBS_OVERHEAD	2	//give cobs room to operate
 
 
+void AudioWriter::start()
+{
+	running_ = true;
+	player_thread_ = std::thread(&AudioWriter::play, this);
+}
+
+void AudioWriter::stop()
+{
+	running_ = false;
+	if(player_thread_.joinable())
+	{
+		player_thread_.join();
+	}
+}
+
 int _audio_tx_blocking(unsigned char addr, dartt_buffer_t * b, void * user_context, uint32_t timeout)
 {
 	if(user_context == NULL)
@@ -168,10 +183,10 @@ AudioWriter::~AudioWriter()
 }
 
 
-int AudioWriter::play(const char * filename, bool sync)
+int AudioWriter::play()
 {
-	if (!drwav_init_file(&wav, filename, NULL)) {
-        printf("Failed to open WAV file: %s\n", filename);
+	if (!drwav_init_file(&wav, filename.c_str(), NULL)) {
+        printf("Failed to open WAV file: %s\n", filename.c_str());
         return 1;
     }
 	print_wav_info(&wav);
@@ -225,7 +240,7 @@ int AudioWriter::play(const char * filename, bool sync)
 		renderer_ctl.retransmission_us = (int32_t)(wiretime_fullpacket/32.f);
 		dartt_write_multi(&samplerate, &ds);
 	}
-	while(sample_idx < wav.totalPCMFrameCount)
+	while(sample_idx < wav.totalPCMFrameCount && running_)
     {
 		if(target_tracker.lower_half == UNWRITTEN && target_tracker.upper_half == UNWRITTEN)
 		{

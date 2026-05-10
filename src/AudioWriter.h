@@ -4,6 +4,8 @@
 #include "serial.h"
 #include "audio.h"
 #include "wav_parsing.h"
+#include <thread>
+#include <atomic>
 
 enum {UNWRITTEN, WRITTEN_UNVISITED, PLAYBACK_IN_PROGRESS, PLAYBACK_DONE};
 enum {BPOS_LOWER, BPOS_UPPER};
@@ -24,10 +26,22 @@ class AudioWriter
 			int interframe_delay_us=0
 		);
 		~AudioWriter();
-		int play(const char * filename, bool sync=false);
-	private:
+		int play();
 		int baudrate = 0;	//needed for wire time calculation
+
+		// const char * filename,
+		std::string filename="../external/dartt_audio/scripts/RebelPathCello_processed.wav";
+		bool sync=false;
+
+		void start();
+		void stop();
+		std::atomic<bool>  running_{false};
+
+	private:
+
 		int interframe_delay = 0;	//optional, needed for wire time calculation
+
+		std::thread player_thread_;
 
 		audio_renderer_t renderer_ctl;
 		audio_renderer_t renderer_shadow;		
